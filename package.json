@@ -1,7 +1,7 @@
 {
   "name": "imessage-mcp",
   "version": "1.0.0",
-  "description": "",
+  "description": "MCP server for iMessage - read, search, and send messages from Claude or any MCP client",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -11,9 +11,12 @@
     "test-client": "node dist/test-client.js",
     "clean": "rm -rf dist"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Sameel Arif",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sameelarif/imessage-mcp"
+  },
   "packageManager": "pnpm@10.7.1",
   "dependencies": {
     "@ai-sdk/openai": "^1.0.0",
