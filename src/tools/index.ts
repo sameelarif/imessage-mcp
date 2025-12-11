@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { registerMessageTools } from "./messages.js";
-import { registerConversationTools } from "./conversations.js";
-import { registerAttachmentTools } from "./attachments.js";
-import { logger } from "../utils/logger.js";
+import { registerMessageTools } from "./messages";
+import { registerConversationTools } from "./conversations";
+import { registerAttachmentTools } from "./attachments";
+import { logger } from "../utils/logger";
 
 export function registerAllTools(server: McpServer) {
   logger.info("Registering MCP tools...");

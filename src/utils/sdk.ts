@@ -1,5 +1,5 @@
 import { IMessageSDK } from "@photon-ai/imessage-kit";
-import { logger } from "./logger.js";
+import { logger } from "./logger";
 
 let sdk: IMessageSDK | null = null;
 

@@ -2,9 +2,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import "dotenv/config";
 
-import { logger } from "./utils/logger.js";
-import { initializeSDK, closeSDK } from "./utils/sdk.js";
-import { registerAllTools } from "./tools/index.js";
+import { logger } from "./utils/logger";
+import { initializeSDK, closeSDK } from "./utils/sdk";
+import { registerAllTools } from "./tools";
 
 // Set log level from environment
 if (process.env.LOG_LEVEL) {

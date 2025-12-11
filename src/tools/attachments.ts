@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getSDK } from "../utils/sdk.js";
-import { logger } from "../utils/logger.js";
+import { getSDK } from "../utils/sdk";
+import { logger } from "../utils/logger";
 
 export function registerAttachmentTools(server: McpServer) {
   // Get messages with attachments
@@ -10,8 +10,16 @@ export function registerAttachmentTools(server: McpServer) {
     "Get messages that have file attachments",
     {
       sender: z.string().optional().describe("Filter by sender"),
-      limit: z.number().min(1).max(50).default(20).describe("Number of messages to retrieve"),
-      imagesOnly: z.boolean().default(false).describe("Only get image attachments"),
+      limit: z
+        .number()
+        .min(1)
+        .max(50)
+        .default(20)
+        .describe("Number of messages to retrieve"),
+      imagesOnly: z
+        .boolean()
+        .default(false)
+        .describe("Only get image attachments"),
     },
     async ({ sender, limit, imagesOnly }) => {
       try {
@@ -26,9 +34,9 @@ export function registerAttachmentTools(server: McpServer) {
         });
 
         let messages = result.messages;
-        
+
         if (imagesOnly) {
-          messages = messages.filter((m) => 
+          messages = messages.filter((m) =>
             m.attachments.some((a) => a.isImage)
           );
         }
@@ -36,26 +44,38 @@ export function registerAttachmentTools(server: McpServer) {
         messages = messages.slice(0, limit);
 
         if (messages.length === 0) {
-          return { content: [{ type: "text", text: "No messages with attachments found" }] };
+          return {
+            content: [
+              { type: "text", text: "No messages with attachments found" },
+            ],
+          };
         }
 
-        const formatted = messages.map((msg) => {
-          const date = new Date(msg.date).toLocaleString();
-          const sender = msg.isFromMe ? "Me" : msg.sender;
-          const attachmentList = msg.attachments.map((a) => {
-            const type = a.isImage ? "📷" : "📎";
-            const size = formatFileSize(a.size);
-            return `    ${type} ${a.filename} (${a.mimeType}, ${size})`;
-          }).join("\n");
-          
-          return `[${date}] ${sender}: ${msg.text || "[No text]"}\n  Attachments:\n${attachmentList}`;
-        }).join("\n\n");
+        const formatted = messages
+          .map((msg) => {
+            const date = new Date(msg.date).toLocaleString();
+            const sender = msg.isFromMe ? "Me" : msg.sender;
+            const attachmentList = msg.attachments
+              .map((a) => {
+                const type = a.isImage ? "📷" : "📎";
+                const size = formatFileSize(a.size);
+                return `    ${type} ${a.filename} (${a.mimeType}, ${size})`;
+              })
+              .join("\n");
+
+            return `[${date}] ${sender}: ${
+              msg.text || "[No text]"
+            }\n  Attachments:\n${attachmentList}`;
+          })
+          .join("\n\n");
 
         return {
-          content: [{
-            type: "text",
-            text: `Found ${messages.length} messages with attachments:\n\n${formatted}`,
-          }],
+          content: [
+            {
+              type: "text",
+              text: `Found ${messages.length} messages with attachments:\n\n${formatted}`,
+            },
+          ],
         };
       } catch (error: any) {
         logger.error("get-attachments failed: %s", error.message);
@@ -70,11 +90,20 @@ export function registerAttachmentTools(server: McpServer) {
     "Get all attachments from a conversation with a specific contact",
     {
       contact: z.string().describe("Phone number or email of the contact"),
-      limit: z.number().min(1).max(100).default(50).describe("Max attachments to retrieve"),
+      limit: z
+        .number()
+        .min(1)
+        .max(100)
+        .default(50)
+        .describe("Max attachments to retrieve"),
     },
     async ({ contact, limit }) => {
       try {
-        logger.tool("get-conversation-attachments", "Getting attachments for %s", contact);
+        logger.tool(
+          "get-conversation-attachments",
+          "Getting attachments for %s",
+          contact
+        );
         const sdk = getSDK();
 
         const result = await sdk.getMessages({
@@ -107,21 +136,32 @@ export function registerAttachmentTools(server: McpServer) {
         const limited = allAttachments.slice(0, limit);
 
         if (limited.length === 0) {
-          return { content: [{ type: "text", text: `No attachments found in conversation with ${contact}` }] };
+          return {
+            content: [
+              {
+                type: "text",
+                text: `No attachments found in conversation with ${contact}`,
+              },
+            ],
+          };
         }
 
-        const formatted = limited.map((att) => {
-          const type = att.isImage ? "📷" : "📎";
-          const size = formatFileSize(att.size);
-          const date = att.date.toLocaleString();
-          return `${type} ${att.filename}\n  From: ${att.sender} at ${date}\n  Type: ${att.mimeType}, Size: ${size}\n  Path: ${att.path}`;
-        }).join("\n\n");
+        const formatted = limited
+          .map((att) => {
+            const type = att.isImage ? "📷" : "📎";
+            const size = formatFileSize(att.size);
+            const date = att.date.toLocaleString();
+            return `${type} ${att.filename}\n  From: ${att.sender} at ${date}\n  Type: ${att.mimeType}, Size: ${size}\n  Path: ${att.path}`;
+          })
+          .join("\n\n");
 
         return {
-          content: [{
-            type: "text",
-            text: `Found ${limited.length} attachments in conversation with ${contact}:\n\n${formatted}`,
-          }],
+          content: [
+            {
+              type: "text",
+              text: `Found ${limited.length} attachments in conversation with ${contact}:\n\n${formatted}`,
+            },
+          ],
         };
       } catch (error: any) {
         logger.error("get-conversation-attachments failed: %s", error.message);
@@ -136,22 +176,36 @@ export function registerAttachmentTools(server: McpServer) {
     "Send multiple files to a recipient",
     {
       to: z.string().describe("Recipient phone number or email"),
-      filePaths: z.array(z.string()).min(1).describe("Array of file paths to send"),
+      filePaths: z
+        .array(z.string())
+        .min(1)
+        .describe("Array of file paths to send"),
       message: z.string().optional().describe("Optional text message"),
     },
     async ({ to, filePaths, message }) => {
       try {
-        logger.tool("send-files", "Sending %d files to %s", filePaths.length, to);
+        logger.tool(
+          "send-files",
+          "Sending %d files to %s",
+          filePaths.length,
+          to
+        );
         const sdk = getSDK();
 
         const result = await sdk.sendFiles(to, filePaths, message);
 
         logger.success("Files sent to %s", to);
         return {
-          content: [{
-            type: "text",
-            text: `${filePaths.length} files sent successfully!\nTo: ${to}\nFiles: ${filePaths.join(", ")}\nSent at: ${result.sentAt.toLocaleString()}`,
-          }],
+          content: [
+            {
+              type: "text",
+              text: `${
+                filePaths.length
+              } files sent successfully!\nTo: ${to}\nFiles: ${filePaths.join(
+                ", "
+              )}\nSent at: ${result.sentAt.toLocaleString()}`,
+            },
+          ],
         };
       } catch (error: any) {
         logger.error("send-files failed: %s", error.message);
@@ -168,4 +222,3 @@ function formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
-

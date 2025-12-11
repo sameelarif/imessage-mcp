@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getSDK } from "../utils/sdk.js";
-import { logger } from "../utils/logger.js";
+import { getSDK } from "../utils/sdk";
+import { logger } from "../utils/logger";
 
 export function registerConversationTools(server: McpServer) {
   // Get conversation with a specific contact

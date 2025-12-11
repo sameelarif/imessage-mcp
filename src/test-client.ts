@@ -42,8 +42,8 @@ async function main() {
     log(COLORS.blue, "🔌", "Connecting to iMessage MCP Server...");
 
     const transport = new Experimental_StdioMCPTransport({
-      command: "node",
-      args: ["dist/index.js"],
+      command: "npx",
+      args: ["tsx", "src/index.ts"],
     });
 
     client = await createMCPClient({ transport });
