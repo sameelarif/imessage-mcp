@@ -1,111 +1,216 @@
-# imessage-mcp
+# 💬 iMessage MCP Server
 
-A full-featured MCP (Model Context Protocol) server for iMessage on macOS, powered by [@photon-ai/imessage-kit](https://github.com/photon-hq/imessage-kit).
+> Access your iMessage conversations through the Model Context Protocol
 
-**No external server required** - works directly with your local iMessage database.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS-blue?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/runtime-Node.js_18+-green?style=flat-square" alt="Node.js">
+  <img src="https://img.shields.io/badge/protocol-MCP-purple?style=flat-square" alt="MCP">
+  <img src="https://img.shields.io/badge/license-MIT-gray?style=flat-square" alt="License">
+</p>
 
-## Features
+<p align="center">
+  <strong>Read, search, and send iMessages</strong> directly from Claude, Cursor, or any MCP-compatible client.<br>
+  No external servers required — works locally with your iMessage database.
+</p>
 
-### Message Tools
-- **get-messages** - Get messages with filters (sender, date, service, attachments)
-- **get-unread-messages** - Get unread messages grouped by sender
-- **search-messages** - Search messages by text content
-- **send-message** - Send text messages
-- **send-image** - Send images
-- **send-file** - Send file attachments
+---
 
-### Conversation Tools
-- **get-conversation** - Get full chat history with a contact
-- **get-recent-conversations** - Overview of recent chats
-- **get-chat-messages** - Get messages from a specific chat/group
+## ✨ Features
 
-### Attachment Tools
-- **get-attachments** - Get messages with attachments
-- **get-conversation-attachments** - Get all attachments from a conversation
-- **send-files** - Send multiple files at once
+<table>
+<tr>
+<td width="50%">
 
-## Prerequisites
+### 📥 Read Messages
 
-- **macOS** with iMessage enabled
-- **Full Disk Access** permission for the application running the MCP server
-- Node.js 18+
+- Get recent messages with smart filtering
+- View unread messages grouped by sender
+- Search across all conversations
+- Filter by date, service (iMessage/SMS), attachments
 
-### Granting Full Disk Access
+</td>
+<td width="50%">
 
-1. Go to **System Settings → Privacy & Security → Full Disk Access**
-2. Add your terminal (Terminal.app, iTerm2, or VS Code)
-3. Restart your terminal
+### 💬 Conversations
 
-## Setup
+- View full chat history with any contact
+- See recent conversations at a glance
+- Support for group chats
+- Track read/unread status
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📤 Send Messages
+
+- Send text messages to any contact
+- Share images and files
+- Send multiple attachments at once
+- Works with phone numbers and emails
+
+</td>
+<td width="50%">
+
+### 📎 Attachments
+
+- Browse messages with attachments
+- Get attachment metadata (size, type, path)
+- Filter for images only
+- View all attachments in a conversation
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **macOS** with iMessage configured
+- **Node.js** 18 or later
+- **Full Disk Access** permission (see below)
+
+### Installation
 
 ```bash
+git clone https://github.com/yourusername/imessage-mcp.git
+cd imessage-mcp
 pnpm install
 pnpm build
 ```
 
-## Usage with Claude Desktop
+### Granting Full Disk Access
 
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+The MCP server needs permission to read your iMessage database.
+
+1. Open **System Settings** → **Privacy & Security** → **Full Disk Access**
+2. Click the **+** button
+3. Add your terminal app (Terminal, iTerm2, VS Code, or Claude Desktop)
+4. Restart the application
+
+---
+
+## 🔧 Configuration
+
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "imessage": {
       "command": "node",
-      "args": ["/path/to/imessage-mcp/dist/index.js"]
+      "args": ["/absolute/path/to/imessage-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-## Test Client
+### Environment Variables
 
-An interactive test client is included for testing with the Vercel AI SDK:
+| Variable    | Description                                          | Default |
+| ----------- | ---------------------------------------------------- | ------- |
+| `LOG_LEVEL` | Logging verbosity (`debug`, `info`, `warn`, `error`) | `info`  |
+| `DEBUG`     | Enable SDK debug mode                                | `false` |
+
+---
+
+## 🛠️ Available Tools
+
+<details>
+<summary><strong>📥 Message Tools</strong></summary>
+
+| Tool                  | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
+| `get-messages`        | Get messages with filters (sender, date, service, attachments) |
+| `get-unread-messages` | Get unread messages grouped by sender                          |
+| `search-messages`     | Search messages by text content                                |
+| `send-message`        | Send a text message                                            |
+| `send-image`          | Send an image                                                  |
+| `send-file`           | Send a file attachment                                         |
+
+</details>
+
+<details>
+<summary><strong>💬 Conversation Tools</strong></summary>
+
+| Tool                       | Description                             |
+| -------------------------- | --------------------------------------- |
+| `get-conversation`         | Get full chat history with a contact    |
+| `get-recent-conversations` | Overview of recent chats                |
+| `get-chat-messages`        | Get messages from a specific chat/group |
+
+</details>
+
+<details>
+<summary><strong>📎 Attachment Tools</strong></summary>
+
+| Tool                           | Description                             |
+| ------------------------------ | --------------------------------------- |
+| `get-attachments`              | Get messages with attachments           |
+| `get-conversation-attachments` | Get all attachments from a conversation |
+| `send-files`                   | Send multiple files at once             |
+
+</details>
+
+---
+
+## 🧪 Test Client
+
+An interactive CLI is included for testing with the Vercel AI SDK:
 
 ```bash
-# Set your OpenAI API key
-export OPENAI_API_KEY=your-api-key
-
-# Run the test client
+export OPENAI_API_KEY=sk-...
 pnpm test-client
 ```
 
-### Test Client Commands
-- Type any question to interact with your iMessage data
-- `clear` - Reset conversation history
-- `tools` - List available tools
-- `exit` - Quit
+**Commands:** `exit` • `clear` • `tools`
 
-## Environment Variables
+---
 
-```bash
-# Optional: Set log level (debug, info, warn, error)
-LOG_LEVEL=info
-
-# Optional: Enable debug mode for the SDK
-DEBUG=true
-```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
-├── index.ts           # Main MCP server entry point
-├── test-client.ts     # Interactive test client
+├── index.ts              # MCP server entry point
+├── test-client.ts        # Interactive test client
 ├── tools/
-│   ├── index.ts       # Tool registration
-│   ├── messages.ts    # Message tools
-│   ├── conversations.ts # Conversation tools
-│   └── attachments.ts # Attachment tools
+│   ├── messages.ts       # Message tools
+│   ├── conversations.ts  # Conversation tools
+│   └── attachments.ts    # Attachment tools
 └── utils/
-    ├── logger.ts      # Pretty CLI logging
-    └── sdk.ts         # SDK initialization
+    ├── logger.ts         # Pretty CLI logging
+    └── sdk.ts            # SDK initialization
 ```
 
-## Scripts
+---
 
-- `pnpm build` - Compile TypeScript
-- `pnpm dev` - Watch mode
-- `pnpm start` - Run the MCP server
-- `pnpm test-client` - Interactive test client
-- `pnpm clean` - Remove build artifacts
+## 📜 Scripts
+
+| Script             | Description             |
+| ------------------ | ----------------------- |
+| `pnpm build`       | Compile TypeScript      |
+| `pnpm dev`         | Watch mode              |
+| `pnpm start`       | Run the MCP server      |
+| `pnpm test-client` | Interactive test client |
+| `pnpm clean`       | Remove build artifacts  |
+
+---
+
+## 🙏 Acknowledgements
+
+- Built with [@photon-ai/imessage-kit](https://github.com/photon-hq/imessage-kit) for iMessage database access
+- Uses the [Model Context Protocol](https://modelcontextprotocol.io) by Anthropic
+- Test client powered by [Vercel AI SDK](https://sdk.vercel.ai)
+
+---
+
+## 📄 License
+
+Licensed under the MIT License.
