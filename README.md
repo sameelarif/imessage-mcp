@@ -3,13 +3,6 @@
 > Access your iMessage conversations through the Model Context Protocol
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS-blue?style=flat-square" alt="Platform">
-  <img src="https://img.shields.io/badge/runtime-Node.js_18+-green?style=flat-square" alt="Node.js">
-  <img src="https://img.shields.io/badge/protocol-MCP-purple?style=flat-square" alt="MCP">
-  <img src="https://img.shields.io/badge/license-MIT-gray?style=flat-square" alt="License">
-</p>
-
-<p align="center">
   <strong>Read, search, and send iMessages</strong> directly from Claude, Cursor, or any MCP-compatible client.<br>
   No external servers required — works locally with your iMessage database.
 </p>
