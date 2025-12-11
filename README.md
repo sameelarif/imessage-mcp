@@ -71,7 +71,7 @@
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/imessage-mcp.git
+git clone https://github.com/sameelarif/imessage-mcp.git
 cd imessage-mcp
 pnpm install
 pnpm build
