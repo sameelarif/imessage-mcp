@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getSDK } from "../utils/sdk";
-import { logger } from "../utils/logger";
-import { searchContacts, getAllContacts } from "../utils/contacts";
+import { getSDK } from "../utils/sdk.js";
+import { logger } from "../utils/logger.js";
+import { searchContacts, getAllContacts } from "../utils/contacts.js";
 
 export function registerConversationTools(server: McpServer) {
   // Find contact by name - searches both iMessage chats AND macOS Contacts
