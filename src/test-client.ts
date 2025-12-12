@@ -61,20 +61,34 @@ async function main() {
     console.log();
 
     // System prompt
-    const systemPrompt = `You are a helpful assistant with access to the user's iMessage data on macOS.
+    const systemPrompt = `You are a helpful assistant with access to the user's iMessage data and macOS Contacts on this Mac.
+
+IMPORTANT: When the user refers to someone by NAME (not phone number), you MUST:
+1. First call find-contact with their name to get their phone number
+2. Then use that phone number with other tools like get-conversation, send-message, etc.
+
+For example, if user says "show me my conversation with John":
+1. Call find-contact with name="John" → returns phone number like +1234567890
+2. Use that phone number with get-conversation
+
+The find-contact tool searches BOTH:
+- macOS Contacts app (for full contact details)
+- iMessage history (for people you've messaged)
 
 You have the following capabilities:
+- Find contacts (find-contact, list-contacts, list-chats)
 - Read messages (get-messages, get-unread-messages, search-messages)
-- View conversations (get-conversation, get-recent-conversations, get-chat-messages)
+- View conversations (get-conversation, get-chat-messages)
 - Send messages (send-message, send-image, send-file, send-files)
 - Work with attachments (get-attachments, get-conversation-attachments)
 
-You can chain multiple tool calls to accomplish complex tasks. For example:
-- Get recent conversations, then dive into a specific one
+You can chain multiple tool calls to accomplish complex tasks:
+- Look up a contact by name, then get their conversation
 - Search for messages, then get the full conversation context
 - Check unread messages, then respond to them
+- Find someone by name, then send them a message
 
-Be proactive in using tools to gather information. Always format phone numbers with country code (e.g., +1234567890).`;
+Be proactive in using tools. When you find a phone number from find-contact, use it directly - don't ask for confirmation.`;
 
     // Conversation history
     const messages: CoreMessage[] = [];

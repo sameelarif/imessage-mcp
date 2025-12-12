@@ -2,8 +2,172 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSDK } from "../utils/sdk";
 import { logger } from "../utils/logger";
+import { searchContacts, getAllContacts } from "../utils/contacts";
 
 export function registerConversationTools(server: McpServer) {
+  // Find contact by name - searches both iMessage chats AND macOS Contacts
+  server.tool(
+    "find-contact",
+    "Search for a contact by name and get their phone number. Use this FIRST when the user mentions someone by name instead of phone number. Searches both iMessage history and macOS Contacts.",
+    {
+      name: z
+        .string()
+        .describe("The name (or partial name) of the contact to find"),
+    },
+    async ({ name }) => {
+      try {
+        logger.tool("find-contact", "Searching for contact: %s", name);
+
+        // Search macOS Contacts database first (more reliable for names)
+        const contactsResults = searchContacts(name);
+
+        if (contactsResults.length > 0) {
+          if (contactsResults.length === 1) {
+            const contact = contactsResults[0];
+            const phone = contact.phoneNumbers[0] || "no phone";
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Found: ${contact.fullName}\nPhone: ${phone}\n\nUse this phone number with send-message, get-conversation, etc.`,
+                },
+              ],
+            };
+          }
+
+          // Multiple matches from Contacts
+          const formatted = contactsResults
+            .slice(0, 10)
+            .map((contact, i) => {
+              const phones = contact.phoneNumbers.join(", ") || "no phone";
+              return `${i + 1}. ${contact.fullName}\n   Phone: ${phones}`;
+            })
+            .join("\n\n");
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Found ${contactsResults.length} contacts matching "${name}":\n\n${formatted}\n\nUse the phone number with other tools.`,
+              },
+            ],
+          };
+        }
+
+        // Fall back to searching iMessage chats
+        const sdk = getSDK();
+        const allChats = await sdk.listChats({
+          type: "dm",
+          limit: 100,
+          sortBy: "recent",
+        });
+
+        const searchLower = name.toLowerCase();
+        const chats = allChats.filter((chat) => {
+          const displayName = chat.displayName?.toLowerCase() || "";
+          return displayName.includes(searchLower);
+        });
+
+        if (chats.length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `No contact found matching "${name}" in Contacts or iMessage. Try a different spelling or use list-contacts to see all contacts.`,
+              },
+            ],
+          };
+        }
+
+        if (chats.length === 1) {
+          const chat = chats[0];
+          const identifier = chat.chatId.split(";").pop() || chat.chatId;
+          const displayName = chat.displayName || identifier;
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Found in iMessage: ${displayName}\nPhone/ID: ${identifier}\n\nUse this with send-message, get-conversation, etc.`,
+              },
+            ],
+          };
+        }
+
+        // Multiple matches from iMessage
+        const formatted = chats
+          .map((chat, i) => {
+            const identifier = chat.chatId.split(";").pop() || chat.chatId;
+            const displayName = chat.displayName || identifier;
+            return `${i + 1}. ${displayName}\n   Phone/ID: ${identifier}`;
+          })
+          .join("\n\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Found ${chats.length} contacts in iMessage matching "${name}":\n\n${formatted}\n\nUse the phone number with other tools.`,
+            },
+          ],
+        };
+      } catch (error: any) {
+        logger.error("find-contact failed: %s", error.message);
+        return { content: [{ type: "text", text: `Error: ${error.message}` }] };
+      }
+    }
+  );
+
+  // List all contacts from macOS Contacts app
+  server.tool(
+    "list-contacts",
+    "List all contacts from the macOS Contacts app with their phone numbers",
+    {
+      limit: z
+        .number()
+        .min(1)
+        .max(100)
+        .default(30)
+        .describe("Number of contacts to return"),
+    },
+    async ({ limit }) => {
+      try {
+        logger.tool("list-contacts", "Listing contacts");
+        const contacts = getAllContacts().slice(0, limit);
+
+        if (contacts.length === 0) {
+          return {
+            content: [
+              { type: "text", text: "No contacts found in macOS Contacts." },
+            ],
+          };
+        }
+
+        const formatted = contacts
+          .map((contact) => {
+            const phones = contact.phoneNumbers.join(", ") || "no phone";
+            const emails =
+              contact.emails.length > 0
+                ? `\n  Email: ${contact.emails.join(", ")}`
+                : "";
+            return `• ${contact.fullName}\n  Phone: ${phones}${emails}`;
+          })
+          .join("\n\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Found ${contacts.length} contacts:\n\n${formatted}`,
+            },
+          ],
+        };
+      } catch (error: any) {
+        logger.error("list-contacts failed: %s", error.message);
+        return { content: [{ type: "text", text: `Error: ${error.message}` }] };
+      }
+    }
+  );
+
   // Get conversation with a specific contact
   server.tool(
     "get-conversation",
@@ -75,76 +239,63 @@ export function registerConversationTools(server: McpServer) {
     }
   );
 
-  // Get recent conversations overview
+  // List chats with contact names
   server.tool(
-    "get-recent-conversations",
-    "Get an overview of recent conversations with unique contacts",
+    "list-chats",
+    "List all chats with contact names, sorted by recent activity",
     {
       limit: z
         .number()
         .min(1)
-        .max(50)
-        .default(20)
-        .describe("Number of recent conversations"),
+        .max(100)
+        .default(30)
+        .describe("Number of chats to retrieve"),
+      type: z
+        .enum(["all", "group", "dm"])
+        .default("all")
+        .describe("Filter by chat type"),
+      hasUnread: z
+        .boolean()
+        .optional()
+        .describe("Only show chats with unread messages"),
+      search: z.string().optional().describe("Search by contact/group name"),
     },
-    async ({ limit }) => {
+    async ({ limit, type, hasUnread, search }) => {
       try {
-        logger.tool("get-recent-conversations", "Getting recent conversations");
+        logger.tool("list-chats", "Listing chats");
         const sdk = getSDK();
 
-        const result = await sdk.getMessages({
-          limit: 500, // Get more to group by sender
-          excludeOwnMessages: false,
+        const chats = await sdk.listChats({
+          limit,
+          type,
+          hasUnread,
+          search,
+          sortBy: "recent",
         });
 
-        // Group by sender and get most recent
-        const conversations = new Map<
-          string,
-          {
-            lastMessage: string;
-            lastDate: Date;
-            unreadCount: number;
-            service: string;
-          }
-        >();
-
-        for (const msg of result.messages) {
-          const contact = msg.isFromMe ? msg.chatId : msg.sender;
-          const existing = conversations.get(contact);
-
-          if (!existing || new Date(msg.date) > existing.lastDate) {
-            conversations.set(contact, {
-              lastMessage: msg.text || "[No text]",
-              lastDate: new Date(msg.date),
-              unreadCount: (existing?.unreadCount || 0) + (msg.isRead ? 0 : 1),
-              service: msg.service,
-            });
-          } else if (!msg.isRead) {
-            existing.unreadCount++;
-          }
-        }
-
-        // Sort by date and limit
-        const sorted = [...conversations.entries()]
-          .sort((a, b) => b[1].lastDate.getTime() - a[1].lastDate.getTime())
-          .slice(0, limit);
-
-        if (sorted.length === 0) {
+        if (chats.length === 0) {
           return {
-            content: [{ type: "text", text: "No recent conversations found" }],
+            content: [{ type: "text", text: "No chats found" }],
           };
         }
 
-        const formatted = sorted
-          .map(([contact, data]) => {
-            const time = data.lastDate.toLocaleString();
+        const formatted = chats
+          .map((chat) => {
+            // Extract phone/email from chatId (e.g., "iMessage;+1234567890" -> "+1234567890")
+            const identifier = chat.chatId.split(";").pop() || chat.chatId;
+            const name = chat.displayName || identifier;
+            const typeLabel = chat.isGroup ? "👥 Group" : "👤 DM";
             const unread =
-              data.unreadCount > 0 ? ` [${data.unreadCount} unread]` : "";
-            const preview =
-              data.lastMessage.length > 50
-                ? data.lastMessage.slice(0, 50) + "..."
-                : data.lastMessage;
-            return `• ${contact} (${data.service})${unread}\n  Last: ${time}\n  "${preview}"`;
+              chat.unreadCount > 0 ? ` [${chat.unreadCount} unread]` : "";
+            const lastActive = chat.lastMessageAt
+              ? `\n  Last active: ${chat.lastMessageAt.toLocaleString()}`
+              : "";
+            // Show name and number separately for DMs
+            const contact =
+              !chat.isGroup && chat.displayName
+                ? `${name} (${identifier})`
+                : name;
+            return `• ${contact} (${typeLabel})${unread}${lastActive}\n  Chat ID: ${chat.chatId}`;
           })
           .join("\n\n");
 
@@ -152,12 +303,12 @@ export function registerConversationTools(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Recent conversations (${sorted.length}):\n\n${formatted}`,
+              text: `Found ${chats.length} chats:\n\n${formatted}`,
             },
           ],
         };
       } catch (error: any) {
-        logger.error("get-recent-conversations failed: %s", error.message);
+        logger.error("list-chats failed: %s", error.message);
         return { content: [{ type: "text", text: `Error: ${error.message}` }] };
       }
     }
@@ -205,7 +356,7 @@ export function registerConversationTools(server: McpServer) {
         const formatted = result.messages
           .map((msg) => {
             const time = new Date(msg.date).toLocaleTimeString();
-            const sender = msg.isFromMe ? "Me" : msg.sender;
+            const sender = msg.isFromMe ? "Me" : msg.senderName || msg.sender;
             return `[${time}] ${sender}: ${msg.text || "[No text]"}`;
           })
           .join("\n");

@@ -54,7 +54,7 @@ export function registerAttachmentTools(server: McpServer) {
         const formatted = messages
           .map((msg) => {
             const date = new Date(msg.date).toLocaleString();
-            const sender = msg.isFromMe ? "Me" : msg.sender;
+            const sender = msg.isFromMe ? "Me" : msg.senderName || msg.sender;
             const attachmentList = msg.attachments
               .map((a) => {
                 const type = a.isImage ? "📷" : "📎";

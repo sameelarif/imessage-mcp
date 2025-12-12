@@ -40,7 +40,7 @@ export function registerMessageTools(server: McpServer) {
 
         const formatted = result.messages.map((msg) => {
           const date = new Date(msg.date).toLocaleString();
-          const sender = msg.isFromMe ? "Me" : msg.sender;
+          const sender = msg.isFromMe ? "Me" : msg.senderName || msg.sender;
           const read = msg.isRead ? "" : " [UNREAD]";
           const attachments = msg.attachments.length > 0 ? ` [${msg.attachments.length} attachment(s)]` : "";
           return `[${date}] ${sender} (${msg.service})${read}: ${msg.text || "[No text]"}${attachments}`;
@@ -127,7 +127,7 @@ export function registerMessageTools(server: McpServer) {
 
         const formatted = matches.map((msg) => {
           const date = new Date(msg.date).toLocaleString();
-          const sender = msg.isFromMe ? "Me" : msg.sender;
+          const sender = msg.isFromMe ? "Me" : msg.senderName || msg.sender;
           return `[${date}] ${sender}: ${msg.text}`;
         }).join("\n");
 
