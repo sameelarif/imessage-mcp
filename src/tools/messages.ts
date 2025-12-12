@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getSDK } from "../utils/sdk";
-import { logger } from "../utils/logger";
+import { getSDK } from "../utils/sdk.js";
+import { logger } from "../utils/logger.js";
 
 export function registerMessageTools(server: McpServer) {
   // Get messages with filtering

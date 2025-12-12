@@ -7,7 +7,7 @@ import Database from "better-sqlite3";
 import { existsSync, readdirSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 
 export interface Contact {
   id: number;

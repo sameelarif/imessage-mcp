@@ -8,7 +8,7 @@ import {
   getAllContacts,
   searchContacts,
   findContactByPhone,
-} from "./utils/contacts";
+} from "./utils/contacts.js";
 
 const sdk = new IMessageSDK({
   debug: false,
