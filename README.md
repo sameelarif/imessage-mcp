@@ -85,7 +85,7 @@ The MCP server needs permission to read your iMessage database.
 
 1. Open **System Settings** → **Privacy & Security** → **Full Disk Access**
 2. Click the **+** button
-3. Add your terminal app (Terminal, iTerm2, VS Code, or Claude Desktop)
+3. Add your terminal app (Terminal, Claude Desktop, Cursor, Warp, VS Code, Ghostyy, etc.)
 4. Restart the application
 
 ---
