@@ -7,12 +7,7 @@
   No external servers required — works locally with your iMessage database.
 </p>
 
-> [!IMPORTANT] > **Local-only server.** This MCP server reads directly from local macOS database files:
->
-> - `~/Library/Messages/chat.db` (iMessage)
-> - `~/Library/Application Support/AddressBook/` (Contacts)
->
-> It must run on the same Mac where your iMessages are loaded and Apple ID is configured. Remote or cloud deployment is not supported.
+⚠️ **Local-only server** — This MCP server reads directly from local macOS database files (`~/Library/Messages/chat.db` and `~/Library/Application Support/AddressBook/`). It must run on the same Mac where your iMessages are loaded and Apple ID is configured. Remote or cloud deployment is not supported.
 
 ---
 
